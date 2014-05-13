@@ -10,28 +10,42 @@ var mongoose = require('mongoose'),
 
 var databaseHandler = {};
 var cacheDatabaseSchema = {};
+var cacheConnection = {};
 var wasInitialize = false;
-var db;
 
 /**
  * connection to mongodb
  */
 function connect(dbConfig) {
 	var deferred = Q.defer();
-	db = mongoose.createConnection(makeConnectionString(dbConfig));
-	db.on('connected', function (){
-		deferred.resolve();
+	var connection = mongoose.createConnection(makeConnectionString(dbConfig));
+	connection.on('connected', function (){
+		deferred.resolve(connection);
 	});
-	db.on('error', function(error) {
+	connection.on('error', function(error) {
 		deferred.reject(new Error(error));
 	})
 	return deferred.promise;
 }
 
+function *createConnections(dbConfig) {
+	for (var name in dbConfig.connections) {
+		var connectionConfig = dbConfig.connections[name];
+		if ("mongoose" !== connectionConfig.driver) continue;
+		cacheConnection[name] = yield connect(dbConfig.connections[name]);
+	}
+
+	if (Object.keys(cacheConnection).length === 0) {
+		Log.warn("no connection with mongoose driver. Delete gaia-driver-mongoose dependencie");
+	}
+}
+
+
+
 /**
- * Inject databse middleware 
+ * Inject databse middleware
  */
-exports.injectDatabase = function() { 
+exports.injectDatabase = function() {
 	return function *(next) {
 		this.getDatabaseHandler = getDatabaseHandler;
 		yield next;
@@ -46,13 +60,21 @@ exports.mongoose = mongoose;
 exports.init = function *(gaia) {
 	var dbConfig = gaia.config.database;
 	if (wasInitialize) return;
-	yield connect(dbConfig);
+	yield createConnections(dbConfig);
 
 	for (var databaseSchemaName in dbConfig.databaseSchema) {
 		var databaseSchema = dbConfig.databaseSchema[databaseSchemaName];
 
-		cacheDatabaseSchema[databaseSchemaName] = yield getModels(gaia.config.appDir, databaseSchema.dir);
+		cacheDatabaseSchema[databaseSchemaName] = {
+			models: yield getModels(gaia.config.appDir, databaseSchema.dir),
+			connection: cacheConnection[databaseSchema.connection]
+		};
+
 		var handler = databaseHandler[databaseSchema.databaseName] = createDatabaseHandler(databaseSchema.databaseName, cacheDatabaseSchema[databaseSchemaName]);
+		if (databaseSchema.default) {
+			databaseHandler["default"] = handler;
+		}
+
 		if (databaseSchema.collectionTestForFirstRun && databaseSchema.onFirstRun) {
 			var obj = handler[databaseSchema.collectionTestForFirstRun];
 			var objs = yield obj.find().exec();
@@ -64,15 +86,17 @@ exports.init = function *(gaia) {
 
 /**
  * Return the database handler
- * 
+ *
  */
 var getDatabaseHandler = exports.getDatabaseHandler = function (databaseName, schemaName) {
+	if (!databaseName) databaseName = "default";
+
 	if (databaseHandler[databaseName]) {
 		return databaseHandler[databaseName];
 	}
 
 	if (schemaName && cacheDatabaseSchema[schemaName]) {
-		return databaseHandler[databaseName] = createDatabaseHandler(databaseName, schemaName);
+		return databaseHandler[databaseName] = createDatabaseHandler(databaseName, cacheDatabaseSchema[schemaName]);
 	}
 	return null;
 }
@@ -97,8 +121,8 @@ function makeConnectionString(dbConfig) {
  */
 function createDatabaseHandler(databaseName, schema) {
 	var databaseHandler = {};
-	var handler = db.useDb(databaseName);
-	var models = schema;
+	var handler = schema.connection.useDb(databaseName);
+	var models = schema.models;
 	models.forEach(function(model) {
 		databaseHandler[model.name] = handler.model(model.name, model.schema);
 	});
