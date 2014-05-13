@@ -38,6 +38,8 @@ exports.injectDatabase = function() {
 	}
 }
 
+exports.mongoose = mongoose;
+
 /**
  * Initialize database
  */
