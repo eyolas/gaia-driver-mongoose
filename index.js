@@ -110,7 +110,11 @@ function makeConnectionString(dbConfig) {
 	if (dbConfig.user) {
 		buff.push(dbConfig.user, ':', dbConfig.password, '@');
 	}
-	buff.push(dbConfig.server, '/', dbConfig.database);
+	buff.push(dbConfig.server, '/');
+
+	if (dbConfig.database){
+		buff.push(dbConfig.databse);
+	}
 
 	return buff.join('');
 }
