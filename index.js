@@ -67,7 +67,8 @@ exports.init = function *(gaia) {
 
 		cacheDatabaseSchema[databaseSchemaName] = {
 			models: yield getModels(gaia.config.appDir, databaseSchema.dir),
-			connection: cacheConnection[databaseSchema.connection]
+			connection: cacheConnection[databaseSchema.connection],
+			databaseSchema: databaseSchema
 		};
 
 		var handler = databaseHandler[databaseSchema.databaseName] = createDatabaseHandler(databaseSchema.databaseName, cacheDatabaseSchema[databaseSchemaName]);
@@ -99,6 +100,10 @@ var getDatabaseHandler = exports.getDatabaseHandler = function (databaseName, sc
 		return databaseHandler[databaseName] = createDatabaseHandler(databaseName, cacheDatabaseSchema[schemaName]);
 	}
 	return null;
+}
+
+exports.getDatabaseSchemas = function() {
+	return cacheDatabaseSchema;
 }
 
 
