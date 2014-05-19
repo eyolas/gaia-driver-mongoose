@@ -95,7 +95,7 @@ var getDatabaseHandler = exports.getDatabaseHandler = function (databaseName, sc
 		return databaseHandler[databaseName];
 	}
 
-	if (schemaName && cacheDatabaseSchema[schemaName]) {
+	if (schemaName && cacheDatabaseSchema[schemaName] && cacheDatabaseSchema[schemaName].isGenerator) {
 		return databaseHandler[databaseName] = createDatabaseHandler(databaseName, cacheDatabaseSchema[schemaName]);
 	}
 	return null;
