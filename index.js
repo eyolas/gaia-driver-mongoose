@@ -31,7 +31,7 @@ exports.getPersistenceDefinition = function *(dbConfig, models) {
 	var connection = yield connect(dbConfig);
 	var repositories = {};
 	models.forEach(function(model) {
-		repositories[model.name] = connection.model(model.name, model.schema);
+		repositories[model.name] = connection.model(pascalCase(model.name), model.schema);
 	});
 
 	return {
@@ -39,6 +39,10 @@ exports.getPersistenceDefinition = function *(dbConfig, models) {
 		repositories: repositories,
 		native: mongoose
 	}
+}
+
+function pascalCase(string) {
+	return string.substr(0,1).toUpperCase() + string.substring(1);
 }
 
 
