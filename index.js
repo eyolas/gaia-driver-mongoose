@@ -22,21 +22,21 @@ function connect(dbConfig) {
 	return deferred.promise;
 }
 
-exports.native = {name: "mongoose", api: mongoose};
+exports.native = mongoose;
 
 /**
  * Initialize database
  */
-exports.getHandler = function *(dbConfig, models) {
+exports.getPersistenceDefinition = function *(dbConfig, models) {
 	var connection = yield connect(dbConfig);
-	var handlers = {};
+	var repositories = {};
 	models.forEach(function(model) {
-		handlers[model.name] = connection.model(model.name, model.schema);
+		repositories[model.name] = connection.model(model.name, model.schema);
 	});
 
 	return {
 		connection: connection,
-		handlers: handlers,
+		repositories: repositories,
 		native: mongoose
 	}
 }
