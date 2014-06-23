@@ -1,5 +1,6 @@
-'use strict';
-
+/********************************
+ ** Module dependencies
+ ********************************/
 var mongoose = require('mongoose'),
   Q = require('q'),
   path = require('path');
@@ -7,10 +8,14 @@ var mongoose = require('mongoose'),
 /**
  * connection to mongodb
  */
-function connect(dbConfig) {
+function connect(dbConfig, options) {
   var deferred = Q.defer(),
-      connection = mongoose.createConnection(makeConnectionString(dbConfig));
+      connection = mongoose.createConnection(makeConnectionString(dbConfig.connection), dbConfig.options);
 
+  if (dbConfig.hasOwnProperty('debug') && dbConfig.debug) {
+    mongoose.set('debug', true);
+  }
+  
   connection.on('connected', function (){
     deferred.resolve(connection);
   });
