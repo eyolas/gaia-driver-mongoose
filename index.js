@@ -1,25 +1,25 @@
 'use strict';
 
 var mongoose = require('mongoose'),
-	Q = require('q'),
-	path = require('path');
+  Q = require('q'),
+  path = require('path');
 
 /**
  * connection to mongodb
  */
 function connect(dbConfig) {
-	var deferred = Q.defer(),
-			connection = mongoose.createConnection(makeConnectionString(dbConfig));
+  var deferred = Q.defer(),
+      connection = mongoose.createConnection(makeConnectionString(dbConfig));
 
-	connection.on('connected', function (){
-		deferred.resolve(connection);
-	});
+  connection.on('connected', function (){
+    deferred.resolve(connection);
+  });
 
-	connection.on('error', function(error) {
-		deferred.reject(new Error(error));
-	});
+  connection.on('error', function(error) {
+    deferred.reject(new Error(error));
+  });
 
-	return deferred.promise;
+  return deferred.promise;
 }
 
 exports.native = mongoose;
@@ -28,21 +28,22 @@ exports.native = mongoose;
  * Initialize database
  */
 exports.getPersistenceDefinition = function *(dbConfig, models) {
-	var connection = yield connect(dbConfig);
-	var repositories = {};
-	models.forEach(function(model) {
-		repositories[model.name] = connection.model(pascalCase(model.name), model.schema);
-	});
+  var connection = yield connect(dbConfig);
+  var repositories = {};
+  models.forEach(function(model) {
+    repositories[model.name] = connection.model(pascalCase(model.name), model.schema);
+  });
 
-	return {
-		connection: connection,
-		repositories: repositories,
-		native: mongoose
-	}
-}
+  return {
+    connection: connection,
+    repositories: repositories,
+    generatorController: require('./generatorController'),
+    native: mongoose
+  }
+};
 
 function pascalCase(string) {
-	return string.substr(0,1).toUpperCase() + string.substring(1);
+  return string.substr(0,1).toUpperCase() + string.substring(1);
 }
 
 
@@ -50,15 +51,15 @@ function pascalCase(string) {
  * Generate connection string
  */
 function makeConnectionString(dbConfig) {
-	var buff = [ 'mongodb://' ];
-	if (dbConfig.user) {
-		buff.push(dbConfig.user, ':', dbConfig.password, '@');
-	}
-	buff.push(dbConfig.server, '/');
+  var buff = [ 'mongodb://' ];
+  if (dbConfig.user) {
+    buff.push(dbConfig.user, ':', dbConfig.password, '@');
+  }
+  buff.push(dbConfig.server, '/');
 
-	if (dbConfig.database){
-		buff.push(dbConfig.database);
-	}
+  if (dbConfig.database){
+    buff.push(dbConfig.database);
+  }
 
-	return buff.join('');
+  return buff.join('');
 }

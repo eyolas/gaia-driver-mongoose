@@ -1,5 +1,5 @@
 {
-  "name": "gaia-driver-mongoose",
+  "name": "gaiajs-driver-mongoose",
   "version": "0.0.1",
   "description": "driver with mongoose for gaia",
   "main": "index.js",
