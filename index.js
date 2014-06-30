@@ -1,30 +1,28 @@
 /********************************
  ** Module dependencies
  ********************************/
-var mongoose = require('mongoose'),
-  Q = require('q'),
+var mongoose = require('mongoose')
   path = require('path');
 
 /**
  * connection to mongodb
  */
 function connect(dbConfig, options) {
-  var deferred = Q.defer(),
-      connection = mongoose.createConnection(makeConnectionString(dbConfig.connection), dbConfig.options);
+  return function(cb) {
+    var connection = mongoose.createConnection(makeConnectionString(dbConfig.connection), dbConfig.options);
 
-  if (dbConfig.hasOwnProperty('debug') && dbConfig.debug) {
-    mongoose.set('debug', true);
+    if (dbConfig.hasOwnProperty('debug') && dbConfig.debug) {
+      mongoose.set('debug', true);
+    }
+    
+    connection.on('connected', function (){
+      cb(null, connection);
+    });
+
+    connection.on('error', function(error) {
+      cb(error);
+    });
   }
-  
-  connection.on('connected', function (){
-    deferred.resolve(connection);
-  });
-
-  connection.on('error', function(error) {
-    deferred.reject(new Error(error));
-  });
-
-  return deferred.promise;
 }
 
 exports.native = mongoose;
