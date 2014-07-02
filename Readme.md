@@ -2,6 +2,8 @@
 [![NPM version](https://badge.fury.io/js/gaiajs-driver-mongoose.svg)](http://badge.fury.io/js/gaiajs-driver-mongoose)
 Mongoose driver for gaiajs
 
+## Configuration
+
 ## Authors
 
   - [David Touzet](https://github.com/eyolas)
