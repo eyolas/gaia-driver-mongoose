@@ -33,9 +33,11 @@ exports.native = mongoose;
 exports.getPersistenceDefinition = function *(dbConfig, models) {
   var connection = yield connect(dbConfig);
   var repositories = {};
-  models.forEach(function(model) {
-    repositories[model.name] = connection.model(pascalCase(model.name), model.schema);
-  });
+  if (models && Array.isArray(models)) {
+    models.forEach(function(model) {
+      repositories[model.name] = connection.model(pascalCase(model.name), model.schema);
+    });
+  }
 
   return {
     connection: connection,
