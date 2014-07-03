@@ -20,6 +20,7 @@
 }
 ```
 Driver use uri on priority then connection object.
+if there is no connection configured, gaiajs use `mongodb://localhost/test`.
 
 To know the driver options, go to the [documentation mongoose](http://mongoosejs.com/docs/connections.html#options)
 
