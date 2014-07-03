@@ -9,12 +9,13 @@ var mongoose = require('mongoose')
  */
 function connect(dbConfig, options) {
   return function(cb) {
-    var connection = mongoose.createConnection(makeConnectionString(dbConfig.connection), dbConfig.options);
+    var uri = dbConfig.connectionUri || makeConnectionString(dbConfig.connection);
+    var connection = mongoose.createConnection(uri, dbConfig.options);
 
     if (dbConfig.hasOwnProperty('debug') && dbConfig.debug) {
       mongoose.set('debug', true);
     }
-    
+
     connection.on('connected', function (){
       cb(null, connection);
     });
@@ -30,7 +31,8 @@ exports.native = mongoose;
 /**
  * Initialize database
  */
-exports.getPersistenceDefinition = function *(dbConfig, models) {
+exports.getPersistenceDefinition = function *(config, models) {
+  var dbConfig = getConfig(config);
   var connection = yield connect(dbConfig);
   var repositories = {};
   if (models && Array.isArray(models)) {
@@ -52,6 +54,16 @@ function pascalCase(string) {
 }
 
 
+function getConfig(config) {
+  if (!config) config = {};
+  if ((!config.connectionUri && !config.connection)
+      || (!config.connectionUri && config.connection && (!config.connection.database || !config.connection.host))) {
+        config.connectionUri = "mongodb://localhost/test";
+  }
+  return config;
+}
+
+
 /**
  * Generate connection string
  */
@@ -60,7 +72,7 @@ function makeConnectionString(dbConfig) {
   if (dbConfig.user) {
     buff.push(dbConfig.user, ':', dbConfig.password, '@');
   }
-  buff.push(dbConfig.server, '/');
+  buff.push(dbConfig.host, '/');
 
   if (dbConfig.database){
     buff.push(dbConfig.database);

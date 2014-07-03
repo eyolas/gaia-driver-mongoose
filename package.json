@@ -1,6 +1,6 @@
 {
   "name": "gaiajs-driver-mongoose",
-  "version": "1.0.0-alpha3",
+  "version": "1.0.0-alpha4",
   "description": "driver with mongoose for gaia",
   "main": "index.js",
   "scripts": {
