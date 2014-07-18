@@ -1,10 +1,11 @@
+REPORTER ?= dot
+
 test:
 	@NODE_ENV=test ./node_modules/.bin/mocha \
+		--reporter $(REPORTER) \
 		--require should \
 		--harmony-generators \
-		test/withoutgaiajs.js \
-		test/generatorController.js \
-		test/injector.js \
+		test/*.js \
 		--bail
 
 .PHONY: test 
