@@ -12,6 +12,7 @@ describe("generator", function() {
     this.timeout(0);
     var mock = mockapp();
     mock.then(function(mock) {
+      console.log("genenenen")
       var server = require('http').Server(mock.app.callback());
       request(server.listen())
         .get('/generic')
